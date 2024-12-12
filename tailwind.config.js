@@ -59,7 +59,7 @@ export default {
 			center: 'true'
 		}
 	},
-	// eslint-disable-next-line no-undef
+
 	// plugins: [require("tailwindcss-animate")],
 	plugins: [import('tailwindcss-animate'),],
 }
