@@ -14,7 +14,7 @@ export const CreateQuiz = () => {
   const {
     register,
     control,
-    formState: {errors},
+    formState: {isSubmitting},
     handleSubmit,
   } = useForm({
     defaultValues: {
@@ -56,25 +56,37 @@ export const CreateQuiz = () => {
 
   const [template, setTemplate] = useState("questionary");
 
-  const {fields, append, remove} = useFieldArray({control, name: "questions"});
+  const {
+    fields: fieldsQuestion,
+    append: appendQuestion,
+    remove: removeQuestion,
+  } = useFieldArray({control, name: "questions"});
+  const {
+    fields: fieldsDefinition,
+    append: appendDefinition,
+    remove: removeDefinition,
+  } = useFieldArray({control, name: "definitions"});
 
   const onSubmit = data => {
-    data.id = quizzes.length + 1;
+    if (!isSubmitting) {
+      data.id = quizzes.length + 1;
 
-    console.log("form data:", data);
+      console.log("form data:", data);
 
-    // validations
-    if (data.questions.length < 3 || data.definitions.length < 3) {
-      alert("Debe completar el formlario");
-    }
-    if (data.questions.length < 3 && data.template == "questionay") {
-      alert("Debe ingresar mínimo 3 preguntas");
-    }
-    if (data.definitions.length < 3 && data.template == "openTheBox") {
-      alert("Debe ingresar mínimo 3 definiciones");
-    } else {
-      quizzes.push(data);
-      console.log(quizzes);
+      // validations
+
+      if (data.template == "questionary") {
+        if (data.questions.length < 3) {
+          alert("Debe ingresar mínimo 3 preguntas");
+        }
+      } else if (data.template == "openTheBox") {
+        if (data.definitions.length < 3) {
+          alert("Debe ingresar mínimo 3 definiciones");
+        }
+      } else {
+        quizzes.push(data);
+        console.log(quizzes);
+      }
     }
   };
 
@@ -93,9 +105,9 @@ export const CreateQuiz = () => {
             {...register("title", {required: true})}
             className="border border-gray-300 rounded-md"
           />
-          {errors.title?.type === "required" && (
+          {/* {errors.title?.type === "required" && (
             <p>El título del examen es requerido </p>
-          )}
+          )} */}
         </div>
         <br />
         {/* Template  */}
@@ -127,7 +139,7 @@ export const CreateQuiz = () => {
           <>
             <div>
               <h2>Preguntas (mínimo {minQuestions})</h2>
-              {fields.map((item, index) => {
+              {fieldsQuestion.map((item, index) => {
                 return (
                   <div key={index}>
                     {/* Question  */}
@@ -136,7 +148,9 @@ export const CreateQuiz = () => {
                       <label htmlFor="question">Pregunta {index + 1}</label>
                       <input
                         type="text"
-                        {...register(`questions[${index}].mainQuestion`)}
+                        {...register(`questions[${index}].mainQuestion`, {
+                          required: true,
+                        })}
                         className="border border-gray-300 rounded-md"
                       />
                     </div>
@@ -148,7 +162,9 @@ export const CreateQuiz = () => {
                         <label htmlFor="question">Opcion A</label>
                         <input
                           type="text"
-                          {...register(`questions[${index}].choices.a`)}
+                          {...register(`questions[${index}].choices.a`, {
+                            required: true,
+                          })}
                           className="border border-gray-300 rounded-md"
                         />
                       </div>
@@ -156,7 +172,9 @@ export const CreateQuiz = () => {
                         <label htmlFor="question">Opcion B</label>
                         <input
                           type="text"
-                          {...register(`questions[${index}].choices.b`)}
+                          {...register(`questions[${index}].choices.b`, {
+                            required: true,
+                          })}
                           className="border border-gray-300 rounded-md"
                         />
                       </div>
@@ -164,7 +182,9 @@ export const CreateQuiz = () => {
                         <label htmlFor="question">Opcion C</label>
                         <input
                           type="text"
-                          {...register(`questions[${index}].choices.c`)}
+                          {...register(`questions[${index}].choices.c`, {
+                            required: true,
+                          })}
                           className="border border-gray-300 rounded-md"
                         />
                       </div>
@@ -172,7 +192,9 @@ export const CreateQuiz = () => {
                         <label htmlFor="question">Opcion D</label>
                         <input
                           type="text"
-                          {...register(`questions[${index}].choices.d`)}
+                          {...register(`questions[${index}].choices.d`, {
+                            required: true,
+                          })}
                           className="border border-gray-300 rounded-md"
                         />
                       </div>
@@ -212,7 +234,7 @@ export const CreateQuiz = () => {
                     {/* Delete button  */}
                     <div>
                       <button
-                        onClick={() => remove(index)}
+                        onClick={() => removeQuestion(index)}
                         className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
                       >
                         x Eliminar
@@ -223,8 +245,10 @@ export const CreateQuiz = () => {
                 );
               })}
               <button
-                onClick={() =>
-                  append({
+                onClick={event => {
+                  event.preventDefault();
+
+                  appendQuestion({
                     id: "",
                     mainQuestion: "",
                     correctAnswer: "",
@@ -234,8 +258,8 @@ export const CreateQuiz = () => {
                       c: "",
                       d: "",
                     },
-                  })
-                }
+                  });
+                }}
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
               >
                 + Añadir pregunta
@@ -256,7 +280,7 @@ export const CreateQuiz = () => {
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
-                {fields.map((item, index) => {
+                {fieldsDefinition.map((item, index) => {
                   return (
                     <>
                       <TableBody key={index}>
@@ -270,21 +294,25 @@ export const CreateQuiz = () => {
                           <TableCell>
                             <input
                               type="text"
-                              {...register(`definitions[${index}].keyword`)}
+                              {...register(`definitions[${index}].keyword`, {
+                                required: true,
+                              })}
                               className="border border-gray-300 rounded-md"
                             />
                           </TableCell>
                           <TableCell>
                             <input
                               type="text"
-                              {...register(`definitions[${index}].definition`)}
+                              {...register(`definitions[${index}].definition`, {
+                                required: true,
+                              })}
                               className="border border-gray-300 rounded-md"
                             />
                           </TableCell>
                           <TableCell>
                             {/* Delete button  */}
                             <button
-                              onClick={() => remove(index)}
+                              onClick={() => removeDefinition(index)}
                               className="bg-red-500 hover:bg-red-700 text-white font-bold py-0 px-4 rounded h-8"
                             >
                               x Eliminar
@@ -297,13 +325,14 @@ export const CreateQuiz = () => {
                 })}
               </Table>
               <button
-                onClick={() =>
-                  append({
+                onClick={event => {
+                  event.preventDefault();
+                  appendDefinition({
                     id: "",
                     keyword: "",
                     definition: "",
-                  })
-                }
+                  });
+                }}
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
               >
                 + Añadir definición
@@ -411,6 +440,9 @@ export const CreateQuiz = () => {
         </div>
         {/* Submit button */}
         <br />
+        {/* <button type="submit" onClick={() => onSubmit}>
+          Guardar
+        </button> */}
         <input
           type="submit"
           value="Guardar"
